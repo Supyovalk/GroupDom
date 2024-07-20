@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>{% block title %} {{name}} {% endblock %}</h1>
+    {{data|safe}}<br>
+    <a href="/character/{{link}}/edit"> Edit The Page</a>
+    <br>
+    <a href="/special/deletecharacter/{{link}}"> Remove The Page</a>
+<br>
+    <a href="/character/{{link}}/relations"> Groups the character is in</a>
+{% endblock %}

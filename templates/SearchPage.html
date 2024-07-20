@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Characters</h1>
+<div id="Characters" class="tabcontent">
+  {% for c in cdata %}
+        <a href='/character/{{c[2]}}'>
+            <h2>{{ c[1] }}</h2>
+        </a>
+        <span class="badge badge-primary">{{ c[0] }}</span>
+        <hr>
+    {% endfor %}
+</div>
+<h1>Groups</h1>
+<div id="Groups" class="tabcontent">
+  {% for g in gdata %}
+        <a href='/group/{{g[2]}}'>
+            <h2>{{ g[1] }}</h2>
+        </a>
+        <span class="badge badge-primary">{{ g[0] }}</span>
+        <hr>
+    {% endfor %}
+</div>
+{% endblock %}
