@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<form action="{{url_for('addcharacter')}}" method="POST">
+   <h1>{% block title %} Characters {% endblock %}</h1>
+    <label> Enter the character's name</label><br>
+    <input type="text" id="name" name="name" value=""><br>
+     <label> Enter basic information</label><br>
+    <textarea id="data" name="data" rows="10" cols="50"></textarea><br>
+    <input type="submit" value="Add character">
+</form>
+
+{% endblock %}

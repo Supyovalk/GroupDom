@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+Are you sure you want to delete {{name}} (Link={{link}})?
+<form id="FormYes" action="/special/deletecharacter/{{link}}" method="POST" >
+    <input type="submit" id="btnyes">YES</input>
+</form>
+<form id="FormNo" action="/character/{{link}}" method="GET" >
+    <input type="submit" id="btnno" >NO</input>
+</form>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>{% block title %} Groups {{name}} is in:{% endblock %}</h1>
+    {% for group in groups %}
+        <a href=/group/{{group[2]}}>
+            <h2>{{ group[1] }}</h2>
+        </a>
+        <span class="badge badge-primary">{{ group[0] }}</span>
+        <hr>
+    {% endfor %}
+{% endblock %}

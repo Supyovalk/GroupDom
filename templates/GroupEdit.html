@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-<form id="FormEdit" action="/group/{{link}}/edit" method="POST" >
-    <textarea id="data" name="data" rows="10" cols="50" >{{data}}</textarea>
-    <br>
-    <button type="submit" value="BtnEdit" >Edit {{name}}</button>
-</form>
-
-{% endblock %}
