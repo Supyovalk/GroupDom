@@ -141,7 +141,7 @@ class Dbconn():
         cur.execute(query)
         r = cur.fetchone()
         print (r)
-        return not r == None
+        return r != None
     def addcgrelation(self,cid,gid):
         return self.notexistexecute("insert into cgrelations (characterid,groupid) values("+str(cid)+","+str(gid)+");","select * from cgrelations where characterid="+str(cid)+" And groupid="+str(gid)+";")
     def getcharactercgrelation(self,cid):
