@@ -1,6 +1,16 @@
 import sqlite3
 import os
 from shutil import rmtree
+CHARACTER_DATA_DICTIONARY_PATH="CharacterData\\"
+DATA_FILENAME="\\Data.txt"
+INIT_TABLE_QUERIES=[
+    'CREATE table if not exists characters (cid integer PRIMARY key AUTOINCREMENT, cname text NOT NULL, link text NOT NULL);',
+    'CREATE table if not exists groups (gid integer PRIMARY KEY autoincrement, gname text NOT NULL, link text NOT NULL);',
+    '''CREATE table if not exists cgrelations (characterid integer , groupid integer ,
+        FOREIGN KEY (characterid) REFERENCES characters(cid),FOREIGN KEY (groupid) REFERENCES groups(gid));''',
+    'CREATE table if not exists media (did integer primary key autoincrement,dname text not null);'
+]
+
 class Character():
     def __init__(self,id,name,link,exists=True):
         self.id=id
@@ -16,11 +26,8 @@ class Group():
 class Dbconn():
     def __init__(self,filename):
         self.conn= sqlite3.connect(filename)
-        self.execute('CREATE table if not exists characters (cid integer PRIMARY key AUTOINCREMENT, cname text NOT NULL, link text NOT NULL);')
-        self.execute( 'CREATE table if not exists groups (gid integer PRIMARY KEY autoincrement, gname text NOT NULL, link text NOT NULL);')
-        self.execute('''CREATE table if not exists cgrelations (characterid integer , groupid integer ,
-        FOREIGN KEY (characterid) REFERENCES characters(cid),FOREIGN KEY (groupid) REFERENCES groups(gid));''')
-        self.execute( 'CREATE table if not exists media (did integer primary key autoincrement,dname text not null);')
+        for query in INIT_TABLE_QUERIES:
+            self.execute(query)
     def close(self):
         self.conn.close()
 
@@ -88,13 +95,13 @@ class Dbconn():
         status = self.notexistexecute("INSERT INTO characters (cname,link) values ('" + name + "','"+link+"');",
                                  "select cname from characters where cname='" + name + "';")
         cur_dir = os.path.dirname(__file__)
-        rel_path = "CharacterData\\" + name
+        rel_path = CHARACTER_DATA_DICTIONARY_PATH + name
         abs_file_path = os.path.join(cur_dir, rel_path)
         try:
             os.mkdir(abs_file_path)
         except:
             print("mkdir error")
-        abs_file_path = os.path.join(cur_dir, "CharacterData\\" + name + "\\Data.txt")
+        abs_file_path = os.path.join(cur_dir, CHARACTER_DATA_DICTIONARY_PATH + name + DATA_FILENAME)
         print(abs_file_path)
         with open(abs_file_path, 'w') as file:
             file.write(filestr)
@@ -103,7 +110,7 @@ class Dbconn():
         c = self.findcharacterbyname(name)
         if (c.exists):
             cur_dir = os.path.dirname(__file__)
-            abs_file_path = os.path.join(cur_dir, "CharacterData\\" + name + "\\Data.txt")
+            abs_file_path = os.path.join(cur_dir, CHARACTER_DATA_DICTIONARY_PATH + name + DATA_FILENAME)
             data = ""
             with open(abs_file_path, 'r') as file:
                 data = file.read()
@@ -115,7 +122,7 @@ class Dbconn():
         print(filestr)
         if (c.exists):
             cur_dir = os.path.dirname(__file__)
-            abs_file_path = os.path.join(cur_dir, "CharacterData\\" + name + "\\Data.txt")
+            abs_file_path = os.path.join(cur_dir, CHARACTER_DATA_DICTIONARY_PATH + name + DATA_FILENAME)
             with open(abs_file_path, 'w') as file:
                 file.write(filestr.replace("\n"," "))
             return True
@@ -129,7 +136,7 @@ class Dbconn():
             self.execute("Delete from characters where cid=" + str(c.id) + ";")
             self.execute("Delete from cgrealtions where characterid=" + str(c.id) + ";")
             cur_dir = os.path.dirname(__file__)
-            rmtree(os.path.join(cur_dir, "CharacterData\\" + c.name))
+            rmtree(os.path.join(cur_dir, CHARACTER_DATA_DICTIONARY_PATH + c.name))
             return True
         else:
             print("[Tried to remove non-exisitng character]")
@@ -173,39 +180,36 @@ class Dbconn():
             os.mkdir(abs_file_path)
         except:
             print("mkdir error")
-        abs_file_path = os.path.join(cur_dir, "GroupData\\" + gname + "\\Data.txt")
+        abs_file_path = os.path.join(cur_dir, "GroupData\\" + gname + DATA_FILENAME)
         with open(abs_file_path, 'w') as file:
             file.write(filestr)
         return status
     def removegroup(self,id) -> bool:
         g = self.findgroupbygid(id)
-        if (g.exists):
-            self.execute("Delete from groups where gid=" + str(g.id) + ";")
-            self.execute("Delete from cgrealtions where groupid=" + str(g.id) + ";")
-            cur_dir = os.path.dirname(__file__)
-            rmtree(os.path.join(cur_dir, "GroupData\\" + g.name))
-            return True
-        else:
-            print("Error:Tried to remove non-existing group")
+        if (not g.exists):
+            print("[Tried to remove non-existing group]")
             return False
+        self.execute("Delete from groups where gid=" + str(g.id) + ";")
+        self.execute("Delete from cgrealtions where groupid=" + str(g.id) + ";")
+        cur_dir = os.path.dirname(__file__)
+        rmtree(os.path.join(cur_dir, "GroupData\\" + g.name))
+        return True
     def getgroupdata(self, name):
         g = self.findgroupbyname(name)
-        if (g.exists):
-            cur_dir = os.path.dirname(__file__)
-            abs_file_path = os.path.join(cur_dir, "GroupData\\" + name + "\\Data.txt")
-            data = ""
-            with open(abs_file_path, 'r') as file:
-                data = file.read()
-            return data
-        else:
-            return ("[Group isnt in the database]")
+        if (not g.exists):
+            return "[Group isnt in the database]"
+        cur_dir = os.path.dirname(__file__)
+        abs_file_path = os.path.join(cur_dir, "GroupData\\" + name + DATA_FILENAME)
+        data = ""
+        with open(abs_file_path, 'r') as file:
+            data = file.read()
+        return data
     def setgroupdata(self,name,filestr):
         g = self.findgroupbyname(name)
-        if (g.exists):
-            cur_dir = os.path.dirname(__file__)
-            abs_file_path = os.path.join(cur_dir, "GroupData\\" + name + "\\Data.txt")
-            with open(abs_file_path, 'w') as file:
-                file.write(filestr.replace("\n"," "))
-            return True
-        else:
+        if (not g.exists):
             return False
+        cur_dir = os.path.dirname(__file__)
+        abs_file_path = os.path.join(cur_dir, "GroupData\\" + name + DATA_FILENAME)
+        with open(abs_file_path, 'w') as file:
+            file.write(filestr.replace("\n"," "))
+        return True
