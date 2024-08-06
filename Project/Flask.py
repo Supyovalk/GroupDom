@@ -1,18 +1,21 @@
 from flask import Flask, render_template,request,redirect,url_for
 import GroupTemps
 import dbconn
-
+DATABASE_FILENAME='DB.sqlite3'
+TEMPLATE_DICT={
+    
+}
 app =Flask(__name__)
 @app.route("/")
 def index():
     return render_template('Home.html')
 @app.route("/character/")
 def charactermainpage():
-    conn = dbconn.Dbconn('DB.sqlite3')
+    conn = dbconn.Dbconn(DATABASE_FILENAME)
     return GroupTemps.CreateTemplateCharacterHome(conn)
 @app.route("/character/<string:link>",methods=['GET','DELETE'])
 def characterpage(link):
-    conn = dbconn.Dbconn('DB.sqlite3')
+    conn = dbconn.Dbconn(DATABASE_FILENAME)
     c = conn.findcharacterbylink(link)
     print(request.method)
     if request.method=='GET':
@@ -22,7 +25,7 @@ def characterpage(link):
         return render_template('Characterpage.html',data=data,link=link,name=c.name )
 @app.route("/special/deletecharacter/<string:link>",methods=['GET','POST'])
 def removecharacter(link):
-    conn = dbconn.Dbconn('DB.sqlite3')
+    conn = dbconn.Dbconn(DATABASE_FILENAME)
     c = conn.findcharacterbylink(link)
     if c.exists:
         if(request.method=='GET'):
@@ -35,14 +38,14 @@ def removecharacter(link):
 @app.route("/character/<string:link>/edit",methods=['GET','POST'])
 def editcharacter(link):
     #XSS script bretch - needs fixing and telling in the program sumaary
-    conn = dbconn.Dbconn('DB.sqlite3')
+    conn = dbconn.Dbconn(DATABASE_FILENAME)
     c = conn.findcharacterbylink(link)
     if c.exists:
         if (request.method == 'GET'):
             data = conn.getcharacterdata(c.name)
             return render_template('CharacterEdit.html', name=c.name, data=data,link=link)
         if (request.method == 'POST'):
-            conn = dbconn.Dbconn('DB.sqlite3')
+            conn = dbconn.Dbconn(DATABASE_FILENAME)
             data = request.form["data"]
             print(data)
             #xss prevention
@@ -58,28 +61,28 @@ def editcharacter(link):
         return render_template('ErrorMissingCharacter.html', link=link)
 @app.route("/character/<string:link>/relations")
 def characterlinks(link):
-    conn=dbconn.Dbconn('DB.sqlite3')
+    conn=dbconn.Dbconn(DATABASE_FILENAME)
     c=conn.findcharacterbylink(link)
     data=conn.getcharactercgrelation(c.id)
     print(data)
     return render_template('CharacterRelations.html',groups=data,name=c.name)
 @app.route("/group/<string:link>/relations")
 def grouplinks(link):
-    conn=dbconn.Dbconn('DB.sqlite3')
+    conn=dbconn.Dbconn(DATABASE_FILENAME)
     g=conn.findgroupbylink(link)
     data=conn.getgroupcgrelation(g.id)
     print(data)
     return render_template('GroupRelations.html',characters=data,name=g.name)
 @app.route("/group/")
 def groupmainpage():
-    conn = dbconn.Dbconn('DB.sqlite3')
+    conn = dbconn.Dbconn(DATABASE_FILENAME)
     rowdata = conn.conn.execute("Select * from groups order by random() limit 10;").fetchall()
     print(rowdata)
     conn.close()
     return render_template('GroupHome.html', posts=rowdata)
 @app.route("/group/<string:link>")
 def grouppage(link):
-    conn = dbconn.Dbconn('DB.sqlite3')
+    conn = dbconn.Dbconn(DATABASE_FILENAME)
     g = conn.findgroupbylink(link)
     if not (g.exists):
         return render_template('ErrorMissingGroup.html', link=link)
@@ -90,7 +93,7 @@ def addcharacter():
     if request.method=='GET':
         return render_template('CharacterAdd.html')
     elif request.method=='POST':
-        conn = dbconn.Dbconn('DB.sqlite3')
+        conn = dbconn.Dbconn(DATABASE_FILENAME)
         data = request.form["data"]
         name = request.form["name"]
         c = conn.findcharacterbyname(name)
@@ -105,7 +108,7 @@ def addgroup():
     if request.method == 'GET':
         return render_template('GroupAdd.html')
     elif request.method=='POST':
-        conn = dbconn.Dbconn('DB.sqlite3')
+        conn = dbconn.Dbconn(DATABASE_FILENAME)
         data,name = request.form["data"], request.form["name"]
         g = conn.findgroupbyname(name)
         if not g.exists:
@@ -117,14 +120,14 @@ def addgroup():
 @app.route("/group/<string:link>/edit",methods=['GET','POST'])
 def editgroup(link):
     # XSS script bretch - needs fixing and telling in the program sumaary
-    conn = dbconn.Dbconn('DB.sqlite3')
+    conn = dbconn.Dbconn(DATABASE_FILENAME)
     g = conn.findgroupbylink(link)
     if g.exists:
         if (request.method == 'GET'):
             data = conn.getgroupdata(g.name)
             return render_template('GroupEdit.html', name=g.name, data=data, link=link)
         if (request.method == 'POST'):
-            conn = dbconn.Dbconn('DB.sqlite3')
+            conn = dbconn.Dbconn(DATABASE_FILENAME)
             data = request.form["data"]
             print("EditGroupData:"+data)
             # xss prevention
@@ -140,7 +143,7 @@ def editgroup(link):
         return render_template('ErrorMissingGroup.html', link=link)
 @app.route("/special/deletegroup/<string:link>",methods=['GET','POST'])
 def removegroup(link):
-    conn = dbconn.Dbconn('DB.sqlite3')
+    conn = dbconn.Dbconn(DATABASE_FILENAME)
     g = conn.findgroupbylink(link)
     if g.exists:
         if (request.method == 'GET'):
@@ -155,7 +158,7 @@ def addcgrelation():
     if (request.method == 'GET'):
         return render_template('CGRelationAdd.html')
     elif request.method == 'POST':
-        conn=dbconn.Dbconn('DB.sqlite3')
+        conn=dbconn.Dbconn(DATABASE_FILENAME)
         character,group=request.form["Character"],request.form["Group"]
         print(character,group)
         c,g=conn.findcharacterbyname(character),conn.findgroupbyname(group)
@@ -170,7 +173,7 @@ def addcgrelation():
         return redirect("/")
 @app.route("/search/",methods=["GET","POST"])
 def searchpageroot():
-     conn=dbconn.Dbconn('DB.sqlite3')
+     conn=dbconn.Dbconn(DATABASE_FILENAME)
      name=request.form["InputSearch"]
      print(name)
      link=name.replace(" ","_")
@@ -178,7 +181,7 @@ def searchpageroot():
 @app.route("/search/<string:link>")
 def searchpage(link):
     name = link.replace("_", " ")
-    conn = dbconn.Dbconn('DB.sqlite3')
+    conn = dbconn.Dbconn(DATABASE_FILENAME)
     cdata = conn.execute('select * from characters where cname like "' + name + '%" COLLATE NOCASE;')
     gdata = conn.execute('select * from groups where gname like "' + name + '%" COLLATE NOCASE;')
     print(cdata)

@@ -2,6 +2,7 @@ import sqlite3
 import os
 from shutil import rmtree
 CHARACTER_DATA_DICTIONARY_PATH="CharacterData\\"
+GROUP_DATA_DICTIONARY_PATH="GroupData\\"
 DATA_FILENAME="\\Data.txt"
 INIT_TABLE_QUERIES=[
     'CREATE table if not exists characters (cid integer PRIMARY key AUTOINCREMENT, cname text NOT NULL, link text NOT NULL);',
@@ -37,7 +38,7 @@ class Dbconn():
             self.conn.commit()
             return list(cur)
         except BaseException as e:
-            print('error!: %s'%(str(e)))
+            print('ERROR EXECUTING QUERY!: %s'%(str(e)))
             return []
     def notexistexecute(self, query,
                         cquery) -> bool :  # will execute the query if the search query cquery is empty (Output is whatever it was made)
@@ -51,7 +52,7 @@ class Dbconn():
                 return True
             return False
         except BaseException as e:
-            print('error!: %s' % (str(e)))
+            print('ERROR EXECUTING QUERY!: %s' % (str(e)))
             return False
     #general search
     def findcharacterbyname(self, name):
@@ -174,13 +175,13 @@ class Dbconn():
         status = self.notexistexecute("INSERT INTO groups (gname,link) values ('" + gname + "','"+link+"');",
                                       "select * from groups where gname ='" + gname + "';")
         cur_dir = os.path.dirname(__file__)
-        rel_path = "GroupData\\" + gname
+        rel_path = GROUP_DATA_DICTIONARY_PATH + gname
         abs_file_path = os.path.join(cur_dir, rel_path)
         try:
             os.mkdir(abs_file_path)
         except:
             print("mkdir error")
-        abs_file_path = os.path.join(cur_dir, "GroupData\\" + gname + DATA_FILENAME)
+        abs_file_path = os.path.join(cur_dir, GROUP_DATA_DICTIONARY_PATH + gname + DATA_FILENAME)
         with open(abs_file_path, 'w') as file:
             file.write(filestr)
         return status
@@ -192,14 +193,14 @@ class Dbconn():
         self.execute("Delete from groups where gid=" + str(g.id) + ";")
         self.execute("Delete from cgrealtions where groupid=" + str(g.id) + ";")
         cur_dir = os.path.dirname(__file__)
-        rmtree(os.path.join(cur_dir, "GroupData\\" + g.name))
+        rmtree(os.path.join(cur_dir, GROUP_DATA_DICTIONARY_PATH + g.name))
         return True
     def getgroupdata(self, name):
         g = self.findgroupbyname(name)
         if (not g.exists):
             return "[Group isnt in the database]"
         cur_dir = os.path.dirname(__file__)
-        abs_file_path = os.path.join(cur_dir, "GroupData\\" + name + DATA_FILENAME)
+        abs_file_path = os.path.join(cur_dir, GROUP_DATA_DICTIONARY_PATH + name + DATA_FILENAME)
         data = ""
         with open(abs_file_path, 'r') as file:
             data = file.read()
@@ -209,7 +210,7 @@ class Dbconn():
         if (not g.exists):
             return False
         cur_dir = os.path.dirname(__file__)
-        abs_file_path = os.path.join(cur_dir, "GroupData\\" + name + DATA_FILENAME)
+        abs_file_path = os.path.join(cur_dir, GROUP_DATA_DICTIONARY_PATH + name + DATA_FILENAME)
         with open(abs_file_path, 'w') as file:
             file.write(filestr.replace("\n"," "))
         return True
